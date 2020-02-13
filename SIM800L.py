@@ -20,8 +20,6 @@ except:
         def warning(cls, text):
             print('WARN:', text)    
     logger=Logger() 
-        
-
 class GenericATError(Exception):
     pass
 
@@ -50,6 +48,9 @@ class Modem(object):
     #----------------------
     
     def initialize(self):
+
+        logger.debug('Initializing modem...')
+
 
         from machine import UART, Pin
 
@@ -83,7 +84,7 @@ class Modem(object):
             else:
                 break
         
-        logger.info('Ok, modem "{}" is ready and accepting commands'.format(modem_info))
+        logger.debug('Ok, modem "{}" is ready and accepting commands'.format(modem_info))
      
         # Set initialized flag and support vars
         self.initialized = True
@@ -152,9 +153,9 @@ class Modem(object):
                 time.sleep(1)
                 empty_reads += 1
                 if empty_reads > timeout:
-                    #raise Exception('Timeout for command "{}" (timeout={})'.format(command, timeout))
-                    logger.warning('Timeout for command "{}" (timeout={})'.format(command, timeout))
-                    break
+                    raise Exception('Timeout for command "{}" (timeout={})'.format(command, timeout))
+                    #logger.warning('Timeout for command "{}" (timeout={})'.format(command, timeout))
+                    #break
             else:
                 logger.debug('Read "{}"'.format(line))
                 
@@ -393,8 +394,9 @@ class Modem(object):
 
 
 
-        
- 
+#-----------------------
+#  Example usage
+#----------------------
 
 if __name__ == '__main__':
     
