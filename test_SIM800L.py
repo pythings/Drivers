@@ -18,7 +18,7 @@ class test_command_functions(unittest.TestCase):
                            MODEM_RST_PIN      = None,
                            MODEM_POWER_ON_PIN = None,
                            MODEM_TX_PIN       = None,
-                           MODEM_RX_PIN       = None) 
+                           MODEM_RX_PIN       = None)
         
     def test_network_scan(self):
 
@@ -42,7 +42,8 @@ class test_command_functions(unittest.TestCase):
         ip_addr = self.modem.get_ip_addr()
         self.assertEqual(ip_addr, '1.2.3.45')
 
-        mocked_at_output = b'+SAPBR: 1,3,"1.2.3.45"'
+        # Edge case when a \r\n gets missing
+        mocked_at_output = b'+HTTPACTION: 1,200,94+SAPBR: 1,1,"1.2.3.45"'
         mock_execute_at_command(mocked_at_output)
         ip_addr = self.modem.get_ip_addr()
         self.assertEqual(ip_addr, '1.2.3.45')

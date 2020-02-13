@@ -253,6 +253,7 @@ class Modem(object):
 
     def get_ip_addr(self):
         output = self.execute_at_command('getbear')
+        output = output.split('+')[-1] # Remove potential leftovers in the buffer before the "+SAPBR:" response
         pieces = output.split(',')
         if len(pieces) != 3:
             raise Exception('Cannot parse "{}" to get an IP address'.format(output))
