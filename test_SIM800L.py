@@ -1,6 +1,6 @@
 
 import unittest
-from sim800l import Modem
+from SIM800L import Modem
 
 # Mock execute_at_command function
 def mock_execute_at_command(output):
@@ -14,9 +14,12 @@ class test_command_functions(unittest.TestCase):
     def setUp(self):
          
         # Create a new modem (but do not initialize it, as there is no actual modem)
-        self.modem = Modem(apn='hello')
+        self.modem = Modem(MODEM_PWKEY_PIN    = None,
+                           MODEM_RST_PIN      = None,
+                           MODEM_POWER_ON_PIN = None,
+                           MODEM_TX_PIN       = None,
+                           MODEM_RX_PIN       = None) 
         
-
     def test_network_scan(self):
 
         # Mock the AT command response
@@ -33,6 +36,11 @@ class test_command_functions(unittest.TestCase):
         mock_execute_at_command(mocked_at_output)
         ip_addr = self.modem.get_ip_addr()
         self.assertEqual(ip_addr, None)
+
+        mocked_at_output = b'+SAPBR: 1,3,"1.2.3.45"'
+        mock_execute_at_command(mocked_at_output)
+        ip_addr = self.modem.get_ip_addr()
+        self.assertEqual(ip_addr, '1.2.3.45')
 
         mocked_at_output = b'+SAPBR: 1,3,"1.2.3.45"'
         mock_execute_at_command(mocked_at_output)
