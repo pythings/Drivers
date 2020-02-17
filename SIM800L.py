@@ -4,22 +4,20 @@ import time
 import json
 
 # Logger
-try:
-    import logger
-    logger.level = logger.INFO
-except:
-    class Logger(object):
-        level = 'INFO'
-        @classmethod
-        def debug(cls, text):
-            if cls.level == 'DEBUG': print('DEBUG:', text)
-        @classmethod
-        def info(cls, text):
-            print('INFO:', text)
-        @classmethod
-        def warning(cls, text):
-            print('WARN:', text)    
-    logger=Logger() 
+class Logger(object):
+    level = 'INFO'
+    @classmethod
+    def debug(cls, text):
+        if cls.level == 'DEBUG': print('DEBUG:', text)
+    @classmethod
+    def info(cls, text):
+        print('INFO:', text)
+    @classmethod
+    def warning(cls, text):
+        print('WARN:', text)    
+logger=Logger()
+
+
 class GenericATError(Exception):
     pass
 
@@ -139,7 +137,9 @@ class Modem(object):
         processed_lines = 0
         
         # Execute the AT command
-        self.uart.write("{}\r\n".format(command_string))
+        command_string_for_at = "{}\r\n".format(command_string)
+        logger.debug('Writing AT command "{}"'.format(command_string_for_at.encode('utf-8')))
+        self.uart.write(command_string_for_at)
         
         # Support vars
         pre_end = True
@@ -191,10 +191,15 @@ class Modem(object):
                 else:
                     output += line_str
 
-        # Clean output if needed
+        # Remove the command string from the output
+        output = output.replace(command_string+'\r\r\n', '')
+        
+        # ..and remove the last \r\n added by the AT protocol
+        if output.endswith('\r\n'):
+            output = output[:-2]
+        
+        # Also, clean output if needed
         if clean_output:
-            
-            output = output.replace(command_string, '')
             output = output.replace('\r', '')
             output = output.replace('\n\n', '')
             if output.startswith('\n'):
@@ -270,7 +275,7 @@ class Modem(object):
         
         # Are we already connected?
         if self.get_ip_addr():
-            logger.warning('Modem is already connected, not reconnecting.')
+            logger.debug('Modem is already connected, not reconnecting.')
             return
         
         # Closing bearer if left opened from a previous connect gone wrong:
@@ -383,7 +388,7 @@ class Modem(object):
 
         # Third, get data
         logger.debug('Http request step #4 (getdata)')
-        response_content = self.execute_at_command('getdata')
+        response_content = self.execute_at_command('getdata', clean_output=False)
          
         logger.debug(response_content)
         
@@ -440,5 +445,3 @@ if __name__ == '__main__':
       
     # Disconnect Modem  
     modem.disconnect()
-
-
