@@ -404,9 +404,8 @@ class Modem(object):
 #  Example usage
 #----------------------
 
-if __name__ == '__main__':
-    
-    print('Starting up')
+def example_usage():
+    print('Starting up...')
     
     # Create new modem object on the right Pins    
     modem = Modem(MODEM_PWKEY_PIN    = 4,
@@ -426,10 +425,10 @@ if __name__ == '__main__':
     
     # Connect the modem
     modem.connect(apn='web.omnitel.it')
-    print('Modem IP address: "{}"'.format(modem.get_ip_addr()))
+    print('\nModem IP address: "{}"'.format(modem.get_ip_addr()))
     
     # Example GET
-    print('Now running demo http GET...')
+    print('\nNow running demo http GET...')
     url = 'http://checkip.dyn.com/'
     response = modem.http_request(url, 'GET')
     print('Response status code:', response.status_code)
