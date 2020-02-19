@@ -1,8 +1,9 @@
 # ---------------------
 # SIM800L example usage
 # ---------------------
-from SIM800L import Modem
 
+from SIM800L import Modem
+import json
 
 def example_usage():
     print('Starting up...')
