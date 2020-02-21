@@ -102,6 +102,7 @@ class Modem(object):
         # Commands dictionary. Not the best approach ever, but works nicely.
         commands = {
                     'modeminfo':  {'string':'ATI', 'timeout':3, 'end': 'OK'},
+                    'fwrevision': {'string':'AT+CGMR', 'timeout':3, 'end': 'OK'},
                     'battery':    {'string':'AT+CBC', 'timeout':3, 'end': 'OK'},
                     'scan':       {'string':'AT+COPS=?', 'timeout':60, 'end': 'OK'},
                     'network':    {'string':'AT+COPS?', 'timeout':3, 'end': 'OK'},
