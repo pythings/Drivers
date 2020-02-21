@@ -46,6 +46,9 @@ class Modem(object):
         self.MODEM_TX_PIN       = MODEM_TX_PIN
         self.MODEM_RX_PIN       = MODEM_RX_PIN
 
+        self.initialized = False
+        self.modem_info = None
+
 
     #----------------------
     #  Modem initializer
@@ -77,7 +80,7 @@ class Modem(object):
         retries = 0
         while True:
             try:
-                modem_info = self.execute_at_command('modeminfo')
+                self.modem_info = self.execute_at_command('modeminfo')
             except:
                 retries+=1
                 if retries < 3:
@@ -88,7 +91,7 @@ class Modem(object):
             else:
                 break
 
-        logger.debug('Ok, modem "{}" is ready and accepting commands'.format(modem_info))
+        logger.debug('Ok, modem "{}" is ready and accepting commands'.format(self.modem_info))
 
         # Set initialized flag and support vars
         self.initialized = True
@@ -335,6 +338,9 @@ class Modem(object):
 
     def http_request(self, url, mode='GET', data=None, content_type='application/json'):
 
+        # Protocol check.
+        assert url.startswith('http'), 'Unable to handle communication protocol for URL "{}"'.format(url)
+
         # Are we  connected?
         if not self.get_ip_addr():
             raise Exception('Error, modem is not connected')
@@ -352,15 +358,18 @@ class Modem(object):
         logger.debug('Http request step #1.2 (sethttp)')
         self.execute_at_command('sethttp')
 
-        # ..Do we have to enable ssl as well?
-        if url.startswith('https://'):
-            logger.debug('Http request step #1.3 (enablessl)')
-            self.execute_at_command('enablessl')
-        elif url.startswith('http://'):
-            logger.debug('Http request step #1.3 (disablessl)')
-            self.execute_at_command('disablessl')
+        # Do we have to enable ssl as well?
+        ssl_available = self.modem_info >= 'SIM800 R14.00'
+        if ssl_available:
+            if url.startswith('https://'):
+                logger.debug('Http request step #1.3 (enablessl)')
+                self.execute_at_command('enablessl')
+            elif url.startswith('http://'):
+                logger.debug('Http request step #1.3 (disablessl)')
+                self.execute_at_command('disablessl')
         else:
-            raise Exception('I have no idea how to handle communication protocol for URL "{}"'.format(url))
+            if url.startswith('https://'):
+                raise NotImplementedError("SSL is only supported by firmware revisions >= R14.00")
 
         # Second, init and execute the request
         logger.debug('Http request step #2.1 (initurl)')
