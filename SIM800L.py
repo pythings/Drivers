@@ -80,7 +80,17 @@ class Modem(object):
         MODEM_POWER_ON_PIN_OBJ.value(1)
 
         # Setup UART
-        self.uart = UART(1, 9600, timeout=1000, rx=self.MODEM_TX_PIN, tx=self.MODEM_RX_PIN)
+
+        # Pycom
+        # https://docs.pycom.io/firmwareapi/pycom/machine/uart/
+        import sys
+        if sys.platform in ['WiPy', 'LoPy', 'LoPy4', 'SiPy', 'GPy', 'FiPy']:
+            self.uart = UART(1, baudrate=9600, pins=(self.MODEM_RX_PIN, self.MODEM_TX_PIN))
+
+        # Genuine MicroPython
+        # http://docs.micropython.org/en/latest/library/pyb.UART.html
+        else:
+            self.uart = UART(1, 9600, timeout=1000, rx=self.MODEM_TX_PIN, tx=self.MODEM_RX_PIN)
 
         # Test AT commands
         retries = 0
