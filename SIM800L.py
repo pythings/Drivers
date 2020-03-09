@@ -7,21 +7,22 @@ import json
 try:
     import logging
     logger = logging.getLogger(__name__)
-
 except:
-    class Logger(object):
-        level = 'INFO'
-        @classmethod
-        def debug(cls, text):
-            if cls.level == 'DEBUG': print('DEBUG:', text)
-        @classmethod
-        def info(cls, text):
-            print('INFO:', text)
-        @classmethod
-        def warning(cls, text):
-            print('WARN:', text)
-
-    logger = Logger()
+    try:
+        import logger
+    except:
+        class Logger(object):
+            level = 'INFO'
+            @classmethod
+            def debug(cls, text):
+                if cls.level == 'DEBUG': print('DEBUG:', text)
+            @classmethod
+            def info(cls, text):
+                print('INFO:', text)
+            @classmethod
+            def warning(cls, text):
+                print('WARN:', text)
+        logger = Logger()
 
 
 class GenericATError(Exception):
