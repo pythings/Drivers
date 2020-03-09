@@ -37,7 +37,7 @@ class Response(object):
 
 class Modem(object):
 
-    def __init__(self, MODEM_PWKEY_PIN, MODEM_RST_PIN, MODEM_POWER_ON_PIN, MODEM_TX_PIN, MODEM_RX_PIN):
+    def __init__(self, uart=None, MODEM_PWKEY_PIN=None, MODEM_RST_PIN=None, MODEM_POWER_ON_PIN=None, MODEM_TX_PIN=None, MODEM_RX_PIN=None):
 
         # Pins
         self.MODEM_PWKEY_PIN    = MODEM_PWKEY_PIN
@@ -45,6 +45,9 @@ class Modem(object):
         self.MODEM_POWER_ON_PIN = MODEM_POWER_ON_PIN
         self.MODEM_TX_PIN       = MODEM_TX_PIN
         self.MODEM_RX_PIN       = MODEM_RX_PIN
+
+        # Uart
+        self.uart = uart
 
         self.initialized = False
         self.modem_info = None
@@ -58,23 +61,26 @@ class Modem(object):
 
         logger.debug('Initializing modem...')
 
+        if not self.uart:
+            from machine import UART, Pin
 
-        from machine import UART, Pin
+            # Pin initialization
+            MODEM_PWKEY_PIN_OBJ = Pin(self.MODEM_PWKEY_PIN, Pin.OUT) if self.MODEM_PWKEY_PIN else None
+            MODEM_RST_PIN_OBJ = Pin(self.MODEM_RST_PIN, Pin.OUT) if self.MODEM_RST_PIN else None
+            MODEM_POWER_ON_PIN_OBJ = Pin(self.MODEM_POWER_ON_PIN, Pin.OUT) if self.MODEM_POWER_ON_PIN else None
+            #MODEM_TX_PIN_OBJ = Pin(self.MODEM_TX_PIN, Pin.OUT) # Not needed as we use MODEM_TX_PIN
+            #MODEM_RX_PIN_OBJ = Pin(self.MODEM_RX_PIN, Pin.IN)  # Not needed as we use MODEM_RX_PIN
 
-        # Pin initialization
-        MODEM_PWKEY_PIN_OBJ = Pin(self.MODEM_PWKEY_PIN, Pin.OUT);
-        MODEM_RST_PIN_OBJ = Pin(self.MODEM_RST_PIN, Pin.OUT)
-        MODEM_POWER_ON_PIN_OBJ = Pin(self.MODEM_POWER_ON_PIN, Pin.OUT)
-        #MODEM_TX_PIN_OBJ = Pin(self.MODEM_TX_PIN, Pin.OUT) # Not needed as we use MODEM_TX_PIN
-        #MODEM_RX_PIN_OBJ = Pin(self.MODEM_RX_PIN, Pin.IN)  # Not needed as we use MODEM_RX_PIN
+            # Status setup
+            if MODEM_PWKEY_PIN_OBJ:
+                MODEM_PWKEY_PIN_OBJ.value(0)
+            if MODEM_RST_PIN_OBJ:
+                MODEM_RST_PIN_OBJ.value(1)
+            if MODEM_POWER_ON_PIN_OBJ:
+                MODEM_POWER_ON_PIN_OBJ.value(1)
 
-        # Status setup
-        MODEM_PWKEY_PIN_OBJ.value(0)
-        MODEM_RST_PIN_OBJ.value(1)
-        MODEM_POWER_ON_PIN_OBJ.value(1)
-
-        # Setup UART
-        self.uart = UART(1, 9600, timeout=1000, rx=self.MODEM_TX_PIN, tx=self.MODEM_RX_PIN)
+            # Setup UART
+            self.uart = UART(1, 9600, timeout=1000, rx=self.MODEM_TX_PIN, tx=self.MODEM_RX_PIN)
 
         # Test AT commands
         retries = 0
