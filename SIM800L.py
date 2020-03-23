@@ -46,6 +46,12 @@ class Modem(object):
         self.MODEM_TX_PIN       = MODEM_TX_PIN
         self.MODEM_RX_PIN       = MODEM_RX_PIN
 
+        # The UART handle.
+        self.uart = None
+
+        # The PPP handle.
+        self.ppp = None
+
         self.initialized = False
         self.modem_info = None
 
@@ -74,7 +80,17 @@ class Modem(object):
         MODEM_POWER_ON_PIN_OBJ.value(1)
 
         # Setup UART
-        self.uart = UART(1, 9600, timeout=1000, rx=self.MODEM_TX_PIN, tx=self.MODEM_RX_PIN)
+
+        # Pycom
+        # https://docs.pycom.io/firmwareapi/pycom/machine/uart/
+        import sys
+        if sys.platform in ['WiPy', 'LoPy', 'LoPy4', 'SiPy', 'GPy', 'FiPy']:
+            self.uart = UART(1, baudrate=9600, pins=(self.MODEM_RX_PIN, self.MODEM_TX_PIN))
+
+        # Genuine MicroPython
+        # http://docs.micropython.org/en/latest/library/pyb.UART.html
+        else:
+            self.uart = UART(1, 9600, timeout=1000, rx=self.MODEM_TX_PIN, tx=self.MODEM_RX_PIN)
 
         # Test AT commands
         retries = 0
@@ -102,8 +118,24 @@ class Modem(object):
     #----------------------
     def execute_at_command(self, command, data=None, clean_output=True):
 
+        """
+        ==========
+        References
+        ==========
+        - https://simcom.ee/documents/SIM800/SIM800%20Series_AT%20Command%20Manual_V1.10.pdf
+        - https://github.com/olablt/micropython-sim800/blob/4d181f0c5d678143801d191fdd8a60996211ef03/app_sim.py
+        - https://arduino.stackexchange.com/questions/23878/what-is-the-proper-way-to-send-data-through-http-using-sim908
+        - https://stackoverflow.com/questions/35781962/post-api-rest-with-at-commands-sim800
+        - https://arduino.stackexchange.com/questions/34901/http-post-request-in-json-format-using-sim900-module (full post example)
+        - https://community.hiveeyes.org/t/unlocking-and-improving-the-pythings-sim800-gprs-module-for-micropython/2978
+        - https://community.hiveeyes.org/t/ppp-over-serial-pppos-support-for-micropython-on-esp32/2994
+        - https://github.com/loboris/MicroPython_ESP32_psRAM_LoBo/blob/8dbfab5/MicroPython_BUILD/components/micropython/esp32/libs/libGSM.c
+        """
+
         # Commands dictionary. Not the best approach ever, but works nicely.
         commands = {
+
+                    # General commands
                     'modeminfo':  {'string':'ATI', 'timeout':3, 'end': 'OK'},
                     'fwrevision': {'string':'AT+CGMR', 'timeout':3, 'end': 'OK'},
                     'battery':    {'string':'AT+CBC', 'timeout':3, 'end': 'OK'},
@@ -127,14 +159,21 @@ class Modem(object):
                     'dopost':     {'string':'AT+HTTPACTION=1', 'timeout':3, 'end': '+HTTPACTION'},
                     'getdata':    {'string':'AT+HTTPREAD', 'timeout':3, 'end': 'OK'},
                     'closehttp':  {'string':'AT+HTTPTERM', 'timeout':3, 'end': 'OK'},
-                    'closebear':  {'string':'AT+SAPBR=0,1', 'timeout':3, 'end': 'OK'}
-        }
+                    'closebear':  {'string':'AT+SAPBR=0,1', 'timeout':3, 'end': 'OK'},
 
-        # References:
-        # https://github.com/olablt/micropython-sim800/blob/4d181f0c5d678143801d191fdd8a60996211ef03/app_sim.py
-        # https://arduino.stackexchange.com/questions/23878/what-is-the-proper-way-to-send-data-through-http-using-sim908
-        # https://stackoverflow.com/questions/35781962/post-api-rest-with-at-commands-sim800
-        # https://arduino.stackexchange.com/questions/34901/http-post-request-in-json-format-using-sim900-module (full post example)
+                    # PPPoS commands
+                    'syncbaud':    {'string': 'AT', 'timeout': 3, 'end': 'OK'},
+                    'reset':       {'string': 'ATZ', 'timeout': 3, 'end': 'OK'},
+                    'disconnect':  {'string': 'ATH', 'timeout': 20, 'end': 'OK'},   # Use "NO CARRIER" here?
+                    'checkpin':    {'string': 'AT+CPIN?', 'timeout': 3, 'end': 'READY'},
+                    'nosms':       {'string': 'AT+CNMI=0,0,0,0,0', 'timeout': 3, 'end': 'OK'},
+                    'ppp_setapn':  {'string': 'AT+CGDCONT=1,"IP","{}"'.format(data), 'timeout': 3, 'end': 'OK'},
+                    'ppp_connect': {'string': 'AT+CGDATA="PPP",1', 'timeout': 3, 'end': 'CONNECT'},
+                    'rfon':        {'string': 'AT+CFUN=1', 'timeout': 3, 'end': 'OK'},
+                    'rfoff':       {'string': 'AT+CFUN=4', 'timeout': 3, 'end': 'OK'},
+                    'echoon':      {'string': 'AT+ATE1', 'timeout': 3, 'end': 'OK'},
+                    'echooff':     {'string': 'AT+ATE0', 'timeout': 3, 'end': 'OK'},
+        }
 
         # Sanity checks
         if command not in commands:
@@ -335,7 +374,6 @@ class Modem(object):
         if ip_addr:
             raise Exception('Error, we should be disconnected but we still have an IP address ({})'.format(ip_addr))
 
-
     def http_request(self, url, mode='GET', data=None, content_type='application/json'):
 
         # Protocol check.
@@ -413,3 +451,30 @@ class Modem(object):
         self.execute_at_command('closehttp')
 
         return Response(status_code=response_status_code, content=response_content)
+
+    def ppp_connect(self, apn):
+
+        if not self.initialized:
+            raise Exception('Modem is not initialized, cannot connect')
+
+        self.execute_at_command('syncbaud')
+        self.execute_at_command('reset')
+        self.execute_at_command('echooff')
+        self.execute_at_command('rfon')
+        self.execute_at_command('checkpin')
+        self.execute_at_command('checkreg')
+        self.execute_at_command('nosms')
+        self.execute_at_command('ppp_setapn', apn)
+        self.execute_at_command('ppp_connect')
+
+        import network
+        self.ppp = network.PPP(self.uart)
+        self.ppp.active(True)
+
+        return self.ppp
+
+    def ppp_disconnect(self):
+        self.ppp.active(False)
+        self.execute_at_command('syncbaud')
+        self.execute_at_command('disconnect')
+        self.execute_at_command('rfoff')
