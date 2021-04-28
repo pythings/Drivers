@@ -25,7 +25,7 @@ def example_usage():
     #print('Signal strength: "{}%"'.format(modem.get_signal_strength()*100))
 
     # Connect the modem
-    modem.connect(apn='web.omnitel.it')
+    modem.connect(apn='web.omnitel.it', user='yourUser', pwd='yourPassword') #leave username and password empty if your network don't require them
     print('\nModem IP address: "{}"'.format(modem.get_ip_addr()))
 
     # Example GET
