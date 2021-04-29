@@ -119,6 +119,8 @@ class Modem(object):
                     'signal':     {'string':'AT+CSQ', 'timeout':3, 'end': 'OK'},
                     'checkreg':   {'string':'AT+CREG?', 'timeout':3, 'end': None},
                     'setapn':     {'string':'AT+SAPBR=3,1,"APN","{}"'.format(data), 'timeout':3, 'end': 'OK'},
+                    'setuser':    {'string':'AT+SAPBR=3,1,"USER","{}"'.format(data), 'timeout':3, 'end': 'OK'},
+                    'setpwd':     {'string':'AT+SAPBR=3,1,"PWD","{}"'.format(data), 'timeout':3, 'end': 'OK'},
                     'initgprs':   {'string':'AT+SAPBR=3,1,"Contype","GPRS"', 'timeout':3, 'end': 'OK'}, # Appeared on hologram net here or below
                     'opengprs':   {'string':'AT+SAPBR=1,1', 'timeout':3, 'end': 'OK'},
                     'getbear':    {'string':'AT+SAPBR=2,1', 'timeout':3, 'end': 'OK'},
@@ -286,7 +288,7 @@ class Modem(object):
             return None
         return ip_addr
 
-    def connect(self, apn):
+    def connect(self, apn, user='', pwd=''):
         if not self.initialized:
             raise Exception('Modem is not initialized, cannot connect')
 
@@ -309,6 +311,8 @@ class Modem(object):
         # Second, set the APN
         logger.debug('Connect step #2 (setapn)')
         self.execute_at_command('setapn', apn)
+        self.execute_at_command('setuser', user)
+        self.execute_at_command('setpwd', pwd)
 
         # Then, open the GPRS connection.
         logger.debug('Connect step #3 (opengprs)')
