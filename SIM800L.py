@@ -81,7 +81,7 @@ class Modem(object):
                 MODEM_POWER_ON_PIN_OBJ.value(1)
 
             # Setup UART
-            self.uart = UART(1, 9600, timeout=1000, rx=self.MODEM_TX_PIN, tx=self.MODEM_RX_PIN)
+            self.uart = UART(1, 9600, timeout=1000, tx=self.MODEM_TX_PIN, rx=self.MODEM_RX_PIN)
 
         # Test AT commands
         retries = 0
