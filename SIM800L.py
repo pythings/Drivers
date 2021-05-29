@@ -102,6 +102,9 @@ class Modem(object):
 
         # Set initialized flag and support vars
         self.initialized = True
+        
+        # Check if SSL is supported
+        self.ssl_available = self.execute_at_command('checkssl') == '+CIPSSL: (0-1)'
 
 
     #----------------------
@@ -126,6 +129,7 @@ class Modem(object):
                     'getbear':    {'string':'AT+SAPBR=2,1', 'timeout':3, 'end': 'OK'},
                     'inithttp':   {'string':'AT+HTTPINIT', 'timeout':3, 'end': 'OK'},
                     'sethttp':    {'string':'AT+HTTPPARA="CID",1', 'timeout':3, 'end': 'OK'},
+                    'checkssl':   {'string':'AT+CIPSSL=?', 'timeout': 3, 'end': 'OK'},
                     'enablessl':  {'string':'AT+HTTPSSL=1', 'timeout':3, 'end': 'OK'},
                     'disablessl': {'string':'AT+HTTPSSL=0', 'timeout':3, 'end': 'OK'},
                     'initurl':    {'string':'AT+HTTPPARA="URL","{}"'.format(data), 'timeout':3, 'end': 'OK'},
@@ -370,8 +374,7 @@ class Modem(object):
         self.execute_at_command('sethttp')
 
         # Do we have to enable ssl as well?
-        ssl_available = self.modem_info >= 'SIM800 R14.00'
-        if ssl_available:
+        if self.ssl_available:
             if url.startswith('https://'):
                 logger.debug('Http request step #1.3 (enablessl)')
                 self.execute_at_command('enablessl')
