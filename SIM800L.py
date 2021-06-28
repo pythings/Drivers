@@ -114,33 +114,38 @@ class Modem(object):
 
         # Commands dictionary. Not the best approach ever, but works nicely.
         commands = {
-                    'modeminfo':  {'string':'ATI', 'timeout':3, 'end': 'OK'},
-                    'fwrevision': {'string':'AT+CGMR', 'timeout':3, 'end': 'OK'},
-                    'battery':    {'string':'AT+CBC', 'timeout':3, 'end': 'OK'},
-                    'scan':       {'string':'AT+COPS=?', 'timeout':60, 'end': 'OK'},
-                    'network':    {'string':'AT+COPS?', 'timeout':3, 'end': 'OK'},
-                    'signal':     {'string':'AT+CSQ', 'timeout':3, 'end': 'OK'},
-                    'checkreg':   {'string':'AT+CREG?', 'timeout':3, 'end': None},
-                    'setapn':     {'string':'AT+SAPBR=3,1,"APN","{}"'.format(data), 'timeout':3, 'end': 'OK'},
-                    'setuser':    {'string':'AT+SAPBR=3,1,"USER","{}"'.format(data), 'timeout':3, 'end': 'OK'},
-                    'setpwd':     {'string':'AT+SAPBR=3,1,"PWD","{}"'.format(data), 'timeout':3, 'end': 'OK'},
-                    'initgprs':   {'string':'AT+SAPBR=3,1,"Contype","GPRS"', 'timeout':3, 'end': 'OK'}, # Appeared on hologram net here or below
-                    'opengprs':   {'string':'AT+SAPBR=1,1', 'timeout':3, 'end': 'OK'},
-                    'getbear':    {'string':'AT+SAPBR=2,1', 'timeout':3, 'end': 'OK'},
-                    'inithttp':   {'string':'AT+HTTPINIT', 'timeout':3, 'end': 'OK'},
-                    'sethttp':    {'string':'AT+HTTPPARA="CID",1', 'timeout':3, 'end': 'OK'},
-                    'checkssl':   {'string':'AT+CIPSSL=?', 'timeout': 3, 'end': 'OK'},
-                    'enablessl':  {'string':'AT+HTTPSSL=1', 'timeout':3, 'end': 'OK'},
-                    'disablessl': {'string':'AT+HTTPSSL=0', 'timeout':3, 'end': 'OK'},
-                    'initurl':    {'string':'AT+HTTPPARA="URL","{}"'.format(data), 'timeout':3, 'end': 'OK'},
-                    'doget':      {'string':'AT+HTTPACTION=0', 'timeout':3, 'end': '+HTTPACTION'},
-                    'setcontent': {'string':'AT+HTTPPARA="CONTENT","{}"'.format(data), 'timeout':3, 'end': 'OK'},
-                    'postlen':    {'string':'AT+HTTPDATA={},5000'.format(data), 'timeout':3, 'end': 'DOWNLOAD'},  # "data" is data_lenght in this context, while 5000 is the timeout
-                    'dumpdata':   {'string':data, 'timeout':1, 'end': 'OK'},
-                    'dopost':     {'string':'AT+HTTPACTION=1', 'timeout':3, 'end': '+HTTPACTION'},
-                    'getdata':    {'string':'AT+HTTPREAD', 'timeout':3, 'end': 'OK'},
-                    'closehttp':  {'string':'AT+HTTPTERM', 'timeout':3, 'end': 'OK'},
-                    'closebear':  {'string':'AT+SAPBR=0,1', 'timeout':3, 'end': 'OK'}
+                    'modeminfo':        {'string':'ATI', 'timeout':3, 'end': 'OK'},
+                    'fwrevision':       {'string':'AT+CGMR', 'timeout':3, 'end': 'OK'},
+                    'battery':          {'string':'AT+CBC', 'timeout':3, 'end': 'OK'},
+                    'scan':             {'string':'AT+COPS=?', 'timeout':60, 'end': 'OK'},
+                    'network':          {'string':'AT+COPS?', 'timeout':3, 'end': 'OK'},
+                    'signal':           {'string':'AT+CSQ', 'timeout':3, 'end': 'OK'},
+                    'checkreg':         {'string':'AT+CREG?', 'timeout':3, 'end': None},
+                    'setapn':           {'string':'AT+SAPBR=3,1,"APN","{}"'.format(data), 'timeout':3, 'end': 'OK'},
+                    'setuser':          {'string':'AT+SAPBR=3,1,"USER","{}"'.format(data), 'timeout':3, 'end': 'OK'},
+                    'setpwd':           {'string':'AT+SAPBR=3,1,"PWD","{}"'.format(data), 'timeout':3, 'end': 'OK'},
+                    'initgprs':         {'string':'AT+SAPBR=3,1,"Contype","GPRS"', 'timeout':3, 'end': 'OK'}, # Appeared on hologram net here or below
+                    'opengprs':         {'string':'AT+SAPBR=1,1', 'timeout':3, 'end': 'OK'},
+                    'getbear':          {'string':'AT+SAPBR=2,1', 'timeout':3, 'end': 'OK'},
+                    'inithttp':         {'string':'AT+HTTPINIT', 'timeout':3, 'end': 'OK'},
+                    'sethttp':          {'string':'AT+HTTPPARA="CID",1', 'timeout':3, 'end': 'OK'},
+                    'checkssl':         {'string':'AT+CIPSSL=?', 'timeout': 3, 'end': 'OK'},
+                    'enablessl':        {'string':'AT+HTTPSSL=1', 'timeout':3, 'end': 'OK'},
+                    'disablessl':       {'string':'AT+HTTPSSL=0', 'timeout':3, 'end': 'OK'},
+                    'initurl':          {'string':'AT+HTTPPARA="URL","{}"'.format(data), 'timeout':3, 'end': 'OK'},
+                    'doget':            {'string':'AT+HTTPACTION=0', 'timeout':3, 'end': '+HTTPACTION'},
+                    'setcontent':       {'string':'AT+HTTPPARA="CONTENT","{}"'.format(data), 'timeout':3, 'end': 'OK'},
+                    'postlen':          {'string':'AT+HTTPDATA={},5000'.format(data), 'timeout':3, 'end': 'DOWNLOAD'},  # "data" is data_lenght in this context, while 5000 is the timeout
+                    'dumpdata':         {'string':data, 'timeout':1, 'end': 'OK'},
+                    'dumpdatalong':     {'string':data, 'timeout':30, 'end': 'OK'},
+                    'dopost':           {'string':'AT+HTTPACTION=1', 'timeout':3, 'end': '+HTTPACTION'},
+                    'getdata':          {'string':'AT+HTTPREAD', 'timeout':3, 'end': 'OK'},
+                    'closehttp':        {'string':'AT+HTTPTERM', 'timeout':3, 'end': 'OK'},
+                    'closebear':        {'string':'AT+SAPBR=0,1', 'timeout':3, 'end': 'OK'},
+                    'setmessageformat': {'string':'AT+CMGF={}'.format(data), 'timeout':3, 'end': 'OK'},
+                    'setsmsalphabet':   {'string':'AT+CSCS="{}"'.format(data), 'timeout':3, 'end': 'OK'},
+                    'setsmsnumber':     {'string':'AT+CMGS="{}"'.format(data), 'timeout':3, 'end': '> '},
+
         }
 
         # References:
@@ -155,7 +160,7 @@ class Modem(object):
 
         # Support vars
         command_string  = commands[command]['string']
-        excpected_end   = commands[command]['end']
+        expected_end    = commands[command]['end']
         timeout         = commands[command]['timeout']
         processed_lines = 0
 
@@ -190,10 +195,10 @@ class Modem(object):
                     raise GenericATError('Got generic AT error')
 
                 # If we had a pre-end, do we have the expected end?
-                if line_str == '{}\r\n'.format(excpected_end):
+                if line_str == '{}\r\n'.format(expected_end) or line_str == expected_end:
                     logger.debug('Detected exact end')
                     break
-                if pre_end and line_str.startswith('{}'.format(excpected_end)):
+                if pre_end and line_str.startswith('{}'.format(expected_end)):
                     logger.debug('Detected startwith end (and adding this line to the output too)')
                     output += line_str
                     break
@@ -427,3 +432,11 @@ class Modem(object):
         self.execute_at_command('closehttp')
 
         return Response(status_code=response_status_code, content=response_content)
+
+
+    def send_sms(self, number, text):
+        self.execute_at_command("setmessageformat", data="1")
+        self.execute_at_command("setsmsalphabet", data="GSM")
+        self.execute_at_command("setsmsnumber", data=number)
+
+        self.execute_at_command("dumpdatalong", data=(text + chr(0x1A)))
